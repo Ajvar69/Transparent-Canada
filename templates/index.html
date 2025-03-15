@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Government Open Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background: #007bff;
+            color: white;
+        }
+        tr:hover {
+            background: #f1f1f1;
+        }
+        .search-box {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .search-box input, .search-box select, .search-box button {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 5px;
+        }
+        .search-box button {
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        .reset-btn {
+            background: #dc3545 !important;
+        }
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .pagination a {
+            padding: 10px 15px;
+            margin: 5px;
+            text-decoration: none;
+            color: white;
+            background: #007bff;
+            border-radius: 5px;
+        }
+        .pagination a.current {
+            background: #0056b3;
+            font-weight: bold;
+        }
+        .pagination a.disabled {
+            background: #ccc;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Government Open Data</h1>
+
+    <!-- Search, Sorting, and Organization Filtering -->
+    <div class="search-box">
+        <form method="get" action="/">
+            <input type="text" name="search" placeholder="Search datasets by title..." value="{{ search_query }}">
+
+            <select name="sort">
+                <option value="none" {% if sort_order == 'none' %}selected{% endif %}>No Sorting</option>
+                <option value="newest" {% if sort_order == 'newest' %}selected{% endif %}>Newest First</option>
+                <option value="oldest" {% if sort_order == 'oldest' %}selected{% endif %}>Oldest First</option>
+            </select>
+            
+            <!-- Organization Filter Dropdown -->
+            <!-- Organization Filter Dropdown -->
+            <select name="organization">
+                {% for org in organizations %}
+                    <option value="{{ org.id }}" {% if org.id == selected_org %}selected{% endif %}>{{ org.name }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Apply</button>
+            <button type="button" class="reset-btn" onclick="window.location='/'">Reset</button>
+        </form>
+    </div>
+
+    <p>Showing page <strong>{{ page }}</strong> of <strong>{{ total_pages }}</strong></p>
+
+    {% if data %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Organization</th>
+                    <th>Last Modified</th>
+                    <th>Dataset Link</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in data %}
+                <tr>
+                    <td>{{ item.title }}</td>
+                    <td>{{ item.organization }}</td>
+                    <td>{{ item.last_modified }}</td>
+                    <td><a href="{{ item.url }}" target="_blank">View Data</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination Controls -->
+        <div class="pagination">
+            {% if total_pages > 1 %}
+                {% if page > 1 %}
+                    <a href="/?page=1&search={{ search_query }}&sort={{ sort_order }}&organization={{ selected_org }}">First</a>
+                    <a href="/?page={{ page - 1 }}&search={{ search_query }}&sort={{ sort_order }}&organization={{ selected_org }}">← Previous</a>
+                {% else %}
+                    <a class="disabled">First</a>
+                    <a class="disabled">← Previous</a>
+                {% endif %}
+
+                {% for i in page_range %}
+                    {% if i == page %}
+                        <a class="current">{{ i }}</a>
+                    {% else %}
+                        <a href="/?page={{ i }}&search={{ search_query }}&sort={{ sort_order }}&organization={{ selected_org }}">{{ i }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page < total_pages %}
+                    <a href="/?page={{ page + 1 }}&search={{ search_query }}&sort={{ sort_order }}&organization={{ selected_org }}">Next →</a>
+                    <a href="/?page={{ total_pages }}&search={{ search_query }}&sort={{ sort_order }}&organization={{ selected_org }}">Last</a>
+                {% else %}
+                    <a class="disabled">Next →</a>
+                    <a class="disabled">Last</a>
+                {% endif %}
+            {% endif %}
+        </div>
+    {% else %}
+        <p style="text-align: center; color: red;">No datasets found. Try a different search.</p>
+    {% endif %}
+
+</body>
+</html>
