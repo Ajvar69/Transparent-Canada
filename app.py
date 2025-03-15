@@ -68,7 +68,13 @@ def home():
                     "url": dataset["resources"][0]["url"] if dataset.get("resources") else "#"
                 })
 
-            # ✅ **Apply correct pagination AFTER filtering**
+            # ✅ **Sort the results based on the selected sorting order**
+            if sort_order == "newest":
+                filtered_datasets.sort(key=lambda x: datetime.strptime(x["last_modified"], "%Y-%m-%dT%H:%M:%S.%f"), reverse=True)
+            elif sort_order == "oldest":
+                filtered_datasets.sort(key=lambda x: datetime.strptime(x["last_modified"], "%Y-%m-%dT%H:%M:%S.%f"), reverse=False)
+
+            # ✅ **Apply correct pagination AFTER sorting**
             total_items = len(filtered_datasets)
             total_pages = max((total_items // ITEMS_PER_PAGE) + (1 if total_items % ITEMS_PER_PAGE > 0 else 0), 1)
 
@@ -77,12 +83,18 @@ def home():
             dataset_details = filtered_datasets[start_idx:end_idx]
 
         else:
-            # ✅ **Non-Keyword Search (Use API pagination directly)**
+            # ✅ **Non-Keyword Search (Use API pagination directly with sorting)**
             api_start = (page - 1) * ITEMS_PER_PAGE
             api_url = f"{BASE_URL}package_search?start={api_start}&rows={ITEMS_PER_PAGE}"
 
             if selected_org and selected_org != "All Organizations":
                 api_url += f"&fq=organization:{urllib.parse.quote(selected_org)}"
+
+            # ✅ **Apply sorting directly in API call**
+            if sort_order == "newest":
+                api_url += "&sort=metadata_modified desc"
+            elif sort_order == "oldest":
+                api_url += "&sort=metadata_modified asc"
 
             print(f"🔍 DEBUG: Fetching non-keyword search data -> {api_url}")
 
