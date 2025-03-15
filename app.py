@@ -48,7 +48,7 @@ def home():
             dataset_list = response_json.get("result", {}).get("results", [])
             total_items = response_json.get("result", {}).get("count", 0)
 
-            # ✅ **Manually filter keyword results to remove unrelated entries**
+            # ✅ **Collect all organizations from the keyword search results**
             filtered_datasets = []
             for dataset in dataset_list:
                 title = dataset.get("title", "N/A")
@@ -83,7 +83,7 @@ def home():
             dataset_details = filtered_datasets[start_idx:end_idx]
 
         else:
-            # ✅ **Non-Keyword Search (Use API pagination directly with sorting)**
+            # ✅ **Non-Keyword Search: Collect organizations dynamically from dataset search results**
             api_start = (page - 1) * ITEMS_PER_PAGE
             api_url = f"{BASE_URL}package_search?start={api_start}&rows={ITEMS_PER_PAGE}"
 
@@ -114,7 +114,8 @@ def home():
                 org_name = dataset.get("organization", {}).get("name", "N/A")  # API ID
                 org_title = dataset.get("organization", {}).get("title", "N/A")  # Display name
 
-                all_organizations[org_name] = org_title  # Store API ID & Display Name
+                # ✅ **Only store organizations that actually have datasets**
+                all_organizations[org_name] = org_title  
 
                 dataset_details.append({
                     "title": dataset.get("title", "N/A"),
